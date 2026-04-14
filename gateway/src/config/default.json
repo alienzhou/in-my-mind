@@ -1,0 +1,13 @@
+{
+  "excludeUsers": [],
+  "indexName": "in-my-mind",
+  "incrementalThreshold": 5,
+  "logging": {
+    "level": "info",
+    "dir": "logs"
+  },
+  "port": 3020,
+  "rawDir": "../raw",
+  "dedupDb": "../data/dedup.sqlite",
+  "debounceMs": 30000
+}
