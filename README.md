@@ -1,4 +1,4 @@
-# 🧠 in-my-mind
+# 🧠 In My Mind (imm)
 
 > 你的收藏夹不是知识库，是信息坟场。
 
@@ -6,8 +6,8 @@
   <img src="./docs/assets/hero-banner.jpg" alt="In My Mind - Your External Brain for Distilled Knowledge" width="100%">
 </p>
 
-
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[🇺🇸 English](./README_EN.md)
 
 ## 问题
 
@@ -21,10 +21,10 @@
 
 把个人知识分成两个库：
 
-| 类型 | 定位 | 例子 |
-|------|------|------|
-| **核心库** | 深度研究、个人思考沉淀 | Obsidian 笔记、读书批注 |
-| **外置库** | 浅看则止、有印象就行 | GitHub Star、Twitter、小红书收藏 |
+| 类型             | 定位                   | 例子                             |
+| ---------------- | ---------------------- | -------------------------------- |
+| **核心库** | 深度研究、个人思考沉淀 | Obsidian 笔记、读书批注          |
+| **外置库** | 浅看则止、有印象就行   | GitHub Star、Twitter、小红书收藏 |
 
 **in-my-mind** 就是这个「外置库」的实现。
 
@@ -32,11 +32,24 @@
 
 ## 它采集什么
 
-- 🌟 GitHub Stars
-- 🐦 Twitter/X 收藏
-- 📕 小红书点赞/收藏（规划中）
-- 📖 知乎收藏（规划中）
-- 🔖 浏览器书签（规划中）
+| 来源 | 状态 | 采集方式 | 说明 |
+|------|------|----------|------|
+| 🌟 GitHub Stars | ✅ 已实现 | CLI (`imm sync github-stars`) | 同步所有 Star 的项目 |
+| 🐦 Twitter/X | ✅ 已实现 | 浏览器插件 | 监听 Like/Bookmark 自动采集 |
+| 🌐 任意网页 | ✅ 已实现 | 浏览器插件 | 点击右下角按钮一键采集 |
+| 📖 知乎 | 📋 规划中 | — | 收藏内容 |
+| 🔖 浏览器书签 | 📋 规划中 | — | 批量导入 |
+
+### 浏览器插件
+
+位于 `tools/browser/` 目录，提供：
+
+| 功能 | 说明 |
+|------|------|
+| X 增强 | 自动监听 Like/Bookmark 操作，实时采集推文内容 |
+| 通用采集 | 右下角常驻按钮，一键采集任意网页到 `raw/bookmarks/` |
+
+详见：[浏览器插件采集器技术规格](./docs/specs/browser-extension-collector.md)
 
 ## 架构
 
@@ -63,6 +76,7 @@
 ```
 
 设计原则：
+
 - **统一入口**：所有数据源走 Gateway，一处规范化、一处去重
 - **URL 去重**：同一内容不同链接形式能被识别（`github.com/x` 和 `www.github.com/x` 是同一个）
 - **增量同步**：每次只采新增内容，不重复拉取
