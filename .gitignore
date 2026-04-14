@@ -1,0 +1,49 @@
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+.pyo
+.pyd
+
+# Environment variables (包含敏感 Token)
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build outputs
+dist/
+build/
+*.egg-info/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Local data (optional, 可根据需要决定是否提交)
+# data/dedup.sqlite
+
+# Local config (不提交到 Git)
+collector/config/.local.yaml
+
+# Log files
+logs/
+
+# Logs directory
+logs/
+
+# Local config (不提交)
+gateway/src/config/.local.json
+
+raw/
+
+data/
