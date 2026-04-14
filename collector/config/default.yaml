@@ -1,0 +1,18 @@
+# Collector 默认配置
+# 优先级: .local.yaml > config.yaml > default.yaml
+
+# 排除的用户名列表（这些用户的 repo 将被跳过采集）
+exclude_users: []
+
+# Elasticsearch 索引名称
+index_name: "in-my-mind"
+
+# 增量采集阈值：连续跳过 N 个已存在的记录后停止采集
+# 设置为 0 表示禁用增量采集，始终全量采集
+incremental_threshold: 5
+
+# 日志级别: DEBUG, INFO, WARNING, ERROR, CRITICAL
+logging_level: "INFO"
+
+# 日志文件目录
+logging_dir: "logs"
