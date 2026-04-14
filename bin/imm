@@ -1,0 +1,74 @@
+#!/bin/bash
+
+# Resolve symlink to get the real script location
+SOURCE="${BASH_SOURCE[0]}"
+while [ -L "$SOURCE" ]; do
+    DIR="$( cd -P "$( dirname "$SOURCE" )" &> /dev/null && pwd )"
+    SOURCE="$(readlink "$SOURCE")"
+    # If $SOURCE was a relative symlink, resolve it relative to the symlink's directory
+    [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+done
+BIN_DIR="$( cd -P "$( dirname "$SOURCE" )" &> /dev/null && pwd )"
+PROJECT_ROOT="$( dirname "$BIN_DIR" )"
+
+# Enter the project root to ensure relative paths work
+cd "$PROJECT_ROOT"
+
+# Check dependencies
+if ! command -v python3 &> /dev/null; then
+    echo "Error: python3 is not installed."
+    exit 1
+fi
+
+COMMAND=$1
+
+case "$COMMAND" in
+    "sync")
+        shift
+        python3 collector/sync.py sync "$@"
+        ;;
+    "serve")
+        echo "Starting browser extension server..."
+        # Add server startup command here when implemented
+        # e.g., bun run tools/browser/server/index.ts
+        ;;
+    "status")
+        echo "External Knowledge Base Status"
+        echo "-----------------------------"
+        python3 -c "
+import sys
+import os
+sys.path.insert(0, '$PROJECT_ROOT')
+from collector.dedup import DedupManager
+from pathlib import Path
+dedup = DedupManager(Path('data/dedup.sqlite'))
+try:
+    total = dedup.get_stats()['total']
+    print(f'Total items collected: {total}')
+except Exception as e:
+    print('Database not initialized or error reading stats.')
+"
+        ;;
+    "gateway")
+        echo "Starting Gateway service..."
+        
+        # Check for Node.js or npx
+        if command -v npx &> /dev/null; then
+            cd "$PROJECT_ROOT/gateway" && npx tsx src/index.ts
+        elif command -v node &> /dev/null; then
+            cd "$PROJECT_ROOT/gateway" && node --import tsx src/index.ts
+        else
+            echo "Error: Node.js/npx is not installed. Please install Node.js to run the gateway."
+            exit 1
+        fi
+        ;;
+    *)
+        echo "Usage: ./bin/imm <command> [args]"
+        echo ""
+        echo "Commands:"
+        echo "  sync [all|github-stars|...]    Synchronize data from collectors"
+        echo "  serve                    Start the browser extension server"
+        echo "  gateway                  Start the Gateway API service"
+        echo "  status                   Show database statistics"
+        ;;
+esac
