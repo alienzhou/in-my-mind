@@ -1,0 +1,53 @@
+{
+  "manifest_version": 3,
+  "name": "In My Mind Collector",
+  "version": "1.0.0",
+  "description": "浏览器内容采集器 - 支持 X 增强和通用网页收藏",
+  "permissions": [
+    "activeTab",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://x.com/*",
+    "https://twitter.com/*",
+    "http://localhost:3020/*"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://x.com/*",
+        "https://twitter.com/*"
+      ],
+      "js": ["content/x-enhancer.js"],
+      "css": ["content/styles.css"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["<all_urls>"],
+      "exclude_matches": [
+        "https://x.com/*",
+        "https://twitter.com/*"
+      ],
+      "js": ["content/collect-button.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": "icons/icon.svg",
+    "default_title": "In My Mind Collector"
+  },
+  "icons": {
+    "128": "icons/icon.svg"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["icons/*"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}
