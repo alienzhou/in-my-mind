@@ -44,9 +44,9 @@ logs/
 # Local config (不提交)
 gateway/src/config/.local.json
 
-raw/
+raw
 
-data/
+data
 
 # CodeFlicker config
 .codeflicker/
