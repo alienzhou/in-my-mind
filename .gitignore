@@ -47,3 +47,6 @@ gateway/src/config/.local.json
 raw/
 
 data/
+
+# CodeFlicker config
+.codeflicker/
