@@ -1,8 +1,7 @@
 ---
-
-## name: in-my-mind-search
-
+name: in-my-mind-search
 description: "Search the user's personal external knowledge base (GitHub stars, Twitter/X saves, browser bookmarks) indexed by QMD. Use when the user asks about tools, libraries, or frameworks they may have saved, says 'I remember seeing...', is doing tech research, or asks 'what do I know about X'. Do NOT use for questions about the user's own code, personal affairs, or when they explicitly want web search."
+---
 
 # in-my-mind Search
 

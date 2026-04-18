@@ -21,6 +21,22 @@ const DOMAIN_ALIASES: Record<string, string> = {
 };
 
 /**
+ * 平台特定的 URL 转换规则
+ * 将不利于采集的 URL 转换为更合适的等价形式
+ */
+function applyPlatformRules(hostname: string, pathname: string): { hostname: string; pathname: string } {
+  // arxiv: /pdf/{id} → /abs/{id} (摘要页有完整元信息，PDF 页无法采集)
+  if (hostname === 'arxiv.org') {
+    const pdfMatch = pathname.match(/^\/pdf\/([0-9.]+)$/i);
+    if (pdfMatch) {
+      pathname = `/abs/${pdfMatch[1]}`;
+    }
+  }
+  
+  return { hostname, pathname };
+}
+
+/**
  * 规范化 URL
  */
 export function normalize(rawUrl: string): string {
@@ -46,8 +62,10 @@ export function normalize(rawUrl: string): string {
     hostname = hostname.slice(4);
   }
   
-  // 4. 规范化路径
-  let pathname = url.pathname;
+  // 4. 平台特定转换（在规范化前应用）
+  const transformed = applyPlatformRules(hostname, url.pathname);
+  hostname = transformed.hostname;
+  let pathname = transformed.pathname;
   
   // 移除末尾斜杠（除非是根路径）
   if (pathname.length > 1 && pathname.endsWith('/')) {

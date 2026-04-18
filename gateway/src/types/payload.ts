@@ -10,13 +10,13 @@ export interface CollectPayload {
   title: string;
   /** 来源 URL（用于去重） */
   url: string;
-  /** 内容主体 */
+  /** 内容主体（url-only 模式下可为空） */
   content: string;
 
   /** 来源标识，默认 'others' */
   source?: string;
-  /** 内容格式，默认 'markdown' */
-  format?: 'markdown' | 'html';
+  /** 内容格式，默认 'markdown'。'url-only' 表示由 Gateway 自动获取内容 */
+  format?: 'markdown' | 'html' | 'url-only';
   /** 标签 */
   tags?: string[];
   /** 作者 */

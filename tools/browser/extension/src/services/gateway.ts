@@ -22,7 +22,7 @@ export interface CollectPayload {
   url: string;
   content: string;
   source: 'x' | 'bookmarks';
-  format: 'html' | 'markdown';
+  format: 'html' | 'markdown' | 'url-only';
   tags?: string[];
   author?: string;
   collect_type: 'likes' | 'bookmarks' | 'manual';

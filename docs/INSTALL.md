@@ -17,8 +17,7 @@
    - [3.6 CLI 命令安装](#36-cli-命令安装)
 4. [环境变量配置](#4-环境变量配置)
 5. [验证安装](#5-验证安装)
-6. [常见问题](#6-常见问题)
-7. [卸载](#7-卸载)
+6. [卸载](#6-卸载)
 
 ---
 
@@ -421,76 +420,7 @@ qmd --index in-my-mind query "测试搜索"
 
 ---
 
-## 6. 常见问题
-
-### Q1: `pnpm install` 报错
-
-**症状**: `ERR_PNPM_NO_LOCKFILE` 或版本不匹配
-
-**解决**:
-```bash
-# 确保使用正确版本
-corepack enable
-corepack prepare pnpm@9.15.0 --activate
-
-# 清理后重试
-rm -rf node_modules pnpm-lock.yaml
-pnpm install
-```
-
-### Q2: Gateway 启动失败
-
-**症状**: 端口被占用或 better-sqlite3 编译失败
-
-**解决**:
-```bash
-# 检查端口占用
-lsof -i :3020
-
-# 重新编译 native 模块
-cd gateway
-pnpm rebuild better-sqlite3
-```
-
-### Q3: QMD 命令未找到
-
-**症状**: `command not found: qmd`
-
-**解决**:
-```bash
-# 确认安装
-cargo install qmd
-
-# 检查 PATH
-echo $PATH | grep -q ".cargo/bin" || export PATH="$HOME/.cargo/bin:$PATH"
-```
-
-### Q4: 权限问题
-
-**症状**: `Permission denied` 执行 `install.sh`
-
-**解决**:
-```bash
-chmod +x install.sh bin/imm
-./install.sh
-```
-
-### Q5: Python 依赖安装失败
-
-**症状**: `pip install` 报错
-
-**解决**:
-```bash
-# 使用 venv 隔离环境
-python3 -m venv .venv
-source .venv/bin/activate
-pip install --upgrade pip
-pip install -r requirements.txt
-```
-
----
-
-## 7. 卸载
+## 6. 卸载
 
 ### 移除 CLI 命令
 
@@ -576,6 +506,7 @@ verify_checklist:
 ## 相关文档
 
 - [README.md](../README.md) - 项目概述
+- [OPERATION.md](./OPERATION.md) - 运维手册
 - [ARCHITECTURE.md](../ARCHITECTURE.md) - 架构设计
 - [CONFIG.md](./CONFIG.md) - 配置项说明
 - [ENV-SETUP.md](./ENV-SETUP.md) - 环境变量详解

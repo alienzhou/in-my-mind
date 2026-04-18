@@ -7,3 +7,4 @@ export * as dedup from './dedup.js';
 export * as cleaner from './cleaner.js';
 export * as storage from './storage.js';
 export * as indexer from './indexer.js';
+export * as fetcher from './fetcher.js';

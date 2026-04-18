@@ -133,6 +133,8 @@ skills/in-my-mind-search/
 ## 相关文档
 
 - [ARCHITECTURE.md](./ARCHITECTURE.md) - 架构设计
+- [docs/INSTALL.md](./docs/INSTALL.md) - 安装指南
+- [docs/OPERATION.md](./docs/OPERATION.md) - 运维手册
 - [docs/CONFIG.md](./docs/CONFIG.md) - 配置说明
 
 ## 灵感来源

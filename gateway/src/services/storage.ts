@@ -106,7 +106,6 @@ export function store(options: {
     tags: options.tags,
     author: options.author,
     collectedAt,
-    collectType: options.collectType,
   });
   
   // 写入文件

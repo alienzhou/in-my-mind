@@ -13,6 +13,7 @@
 import { getLogger } from '../utils/logger';
 import { collectViaBackground, CollectPayload } from '../services/gateway';
 import { showSuccessToast, showErrorToast } from './toast';
+import { isPdfViewerPage, handlePdfUrl } from '../utils/pdf-handler';
 
 const logger = getLogger('collect-button');
 
@@ -222,6 +223,33 @@ function snapToEdge() {
   updateButtonState(currentState);
 }
 
+/**
+ * 从 Chrome PDF 查看器中提取原始 PDF URL
+ * 
+ * Chrome PDF 查看器通常使用 embed[type="application/pdf"] 来嵌入 PDF
+ * embed 元素的 src 属性包含原始 PDF URL
+ */
+function extractPdfUrlFromViewer(): string | null {
+  const embedElement = document.querySelector('embed[type="application/pdf"]');
+  if (embedElement) {
+    const src = embedElement.getAttribute('src');
+    if (src) {
+      return src;
+    }
+  }
+  
+  // 某些 PDF 查看器可能使用 iframe
+  const iframeElement = document.querySelector('iframe[type="application/pdf"]');
+  if (iframeElement) {
+    const src = iframeElement.getAttribute('src');
+    if (src) {
+      return src;
+    }
+  }
+  
+  return null;
+}
+
 async function collectCurrentPage(): Promise<void> {
   if (currentState === 'loading') {
     logger.warn('Collection already in progress');
@@ -232,15 +260,51 @@ async function collectCurrentPage(): Promise<void> {
   updateButtonState('loading');
 
   try {
+    let title = document.title;
+    let url = window.location.href;
+    let useUrlOnly = false;
+    
+    // 优先检测 PDF 查看器（embed/iframe 元素）
+    const embedElement = document.querySelector('embed[type="application/pdf"]');
+    const iframeElement = document.querySelector('iframe[type="application/pdf"]');
+    
+    if (isPdfViewerPage(document.body, embedElement || iframeElement)) {
+      logger.info('PDF viewer detected');
+      useUrlOnly = true;
+      
+      // 尝试从查看器中提取原始 PDF URL
+      const pdfUrl = extractPdfUrlFromViewer();
+      if (pdfUrl) {
+        logger.info('Extracted PDF URL from viewer', { pdfUrl });
+        url = pdfUrl;
+      }
+    } else if (isPdfUrl(url)) {
+      // URL 直接指向 PDF 文件
+      logger.info('PDF URL detected', { url });
+      useUrlOnly = true;
+      
+      // 对于 arxiv 等特殊平台，转换为摘要页 URL（用于去重）
+      const alternativeUrl = handlePdfUrl(url);
+      if (alternativeUrl) {
+        logger.info('PDF URL will be normalized for dedupe', { original: url, normalized: alternativeUrl });
+      }
+    }
+    
     const payload: CollectPayload = {
-      title: document.title,
-      url: window.location.href,
-      content: document.documentElement.outerHTML,
+      title,
+      url,
+      content: useUrlOnly ? '' : document.documentElement.outerHTML,
       source: 'bookmarks',
-      format: 'html',
+      format: useUrlOnly ? 'url-only' : 'html',
       collect_type: 'manual',
       author: extractAuthor(),
     };
+
+    logger.info('Sending collect request', { 
+      url, 
+      format: payload.format,
+      useUrlOnly 
+    });
 
     const result = await collectViaBackground(payload);
 
@@ -263,6 +327,30 @@ async function collectCurrentPage(): Promise<void> {
   setTimeout(() => {
     updateButtonState('idle');
   }, 2000);
+}
+
+/**
+ * 检测 URL 是否为 PDF 文件
+ */
+function isPdfUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    const pathname = parsed.pathname.toLowerCase();
+    
+    // 检测 .pdf 扩展名
+    if (pathname.endsWith('.pdf')) {
+      return true;
+    }
+    
+    // 检测已知的 PDF URL 模式（如 arxiv /pdf/ 路径）
+    if (parsed.hostname === 'arxiv.org' && pathname.startsWith('/pdf/')) {
+      return true;
+    }
+    
+    return false;
+  } catch {
+    return false;
+  }
 }
 
 function handlePointerDown(e: PointerEvent) {
@@ -334,16 +422,20 @@ export function initCollectButton(): void {
   injectStyles();
   buttonElement = createCollectButton();
 
-  const initialW = 140;
-  buttonElement.style.left = `${window.innerWidth - initialW}px`;
+  // 初始设为不可见，避免定位计算前闪烁
+  buttonElement.style.visibility = 'hidden';
   buttonElement.style.top = `${window.innerHeight - 100}px`;
   currentSnap = 'right';
 
   document.body.appendChild(buttonElement);
   updateButtonState('idle');
 
+  // 渲染后获取实际宽度，精确定位再显示
   requestAnimationFrame(() => {
+    const actualWidth = buttonElement!.offsetWidth;
+    buttonElement!.style.left = `${window.innerWidth - actualWidth}px`;
     snapToEdge();
+    buttonElement!.style.visibility = 'visible';
   });
 
   logger.info('Collect button initialized', { url: window.location.href });

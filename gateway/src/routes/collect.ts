@@ -5,6 +5,7 @@ import { exists, record } from '../services/dedup.js';
 import { clean } from '../services/cleaner.js';
 import { store } from '../services/storage.js';
 import { trigger } from '../services/indexer.js';
+import { fetchContent } from '../services/fetcher.js';
 import { createLogger } from '../services/logger.js';
 
 const log = createLogger('collect');
@@ -28,14 +29,25 @@ collect.post('/', async (c) => {
     return c.json(response, 400);
   }
   
-  log.info({ url: payload.url, title: payload.title?.slice(0, 50) }, 'Collect request received');
+  log.info({ url: payload.url, title: payload.title?.slice(0, 50), format: payload.format }, 'Collect request received');
   
   // 校验必填字段
-  if (!payload.title || !payload.url || !payload.content) {
-    log.warn({ url: payload.url }, 'Missing required fields');
+  // - url-only 模式：只需要 url
+  // - 其他模式：需要 url 和 content
+  if (!payload.url) {
+    log.warn({ url: payload.url }, 'Missing required field: url');
     const response: CollectResponse = {
       status: 'error',
-      message: 'Missing required fields: title, url, content',
+      message: 'Missing required field: url',
+    };
+    return c.json(response, 400);
+  }
+  
+  if (payload.format !== 'url-only' && !payload.content) {
+    log.warn({ url: payload.url }, 'Missing required field: content');
+    const response: CollectResponse = {
+      status: 'error',
+      message: 'Missing required field: content',
     };
     return c.json(response, 400);
   }
@@ -58,13 +70,45 @@ collect.post('/', async (c) => {
   const source = payload.source || inferSource(normalizedUrl);
   
   try {
-    // 4. 内容处理
-    let title = payload.title;
-    let content = payload.content;
+    // 4. 获取/处理内容
+    let title = payload.title || '';
+    let content = payload.content || '';
     
-    if (payload.format === 'html') {
+    // url-only 模式：Gateway 自动获取内容
+    // 注意：使用原始 URL fetch，使用规范化 URL 去重和存储
+    if (payload.format === 'url-only') {
+      log.info({ originalUrl: payload.url, normalizedUrl }, 'url-only mode: fetching content from remote');
+      
       try {
-        const cleaned = clean(payload.content, payload.title);
+        // 使用原始 URL fetch，保留 PDF 等二进制内容
+        const fetched = await fetchContent(payload.url);
+        content = fetched.content;
+        
+        // 如果有提取到标题且原 title 为空，使用提取的标题
+        if (fetched.title && !title) {
+          title = fetched.title;
+        }
+        
+        log.info({ 
+          url: normalizedUrl, 
+          title: title?.slice(0, 50),
+          contentLength: content.length,
+          contentType: fetched.contentType 
+        }, 'Content fetched successfully');
+      } catch (fetchError) {
+        const errorMsg = fetchError instanceof Error ? fetchError.message : String(fetchError);
+        log.error({ url: normalizedUrl, error: errorMsg }, 'Failed to fetch content');
+        
+        const response: CollectResponse = {
+          status: 'error',
+          message: `Failed to fetch content: ${errorMsg}`,
+        };
+        return c.json(response, 500);
+      }
+    } else if (payload.format === 'html') {
+      // HTML 模式：使用 Readability 清洗
+      try {
+        const cleaned = clean(content, title);
         title = cleaned.title;
         content = cleaned.content;
       } catch (cleanError) {
@@ -73,7 +117,18 @@ collect.post('/', async (c) => {
           'HTML cleaning failed, falling back to raw content'
         );
         // 清洗失败时使用原始内容，不阻塞采集流程
-        content = payload.content;
+      }
+    }
+    
+    // 标题 fallback：如果仍然为空，使用 URL 路径的最后一部分
+    if (!title || title.trim() === '') {
+      try {
+        const urlPath = new URL(normalizedUrl).pathname;
+        const lastSegment = urlPath.split('/').filter(Boolean).pop() || 'Untitled';
+        title = lastSegment;
+        log.info({ normalizedUrl, fallbackTitle: title }, 'Using fallback title');
+      } catch {
+        title = 'Untitled';
       }
     }
     

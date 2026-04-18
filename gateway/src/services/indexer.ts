@@ -85,7 +85,7 @@ function ensureCollection(source: string): void {
       // qmd 需要在 raw/ 目录下执行，使用相对路径 ./{source}
       execSync(
         `qmd --index ${config.indexName} collection add ${source} ./${source} --pattern '**/*.md'`,
-        { stdio: 'inherit', shell: true, cwd: rawDirAbsolute }
+        { stdio: 'inherit', shell: '/bin/sh', cwd: rawDirAbsolute }
       );
       console.log(`[Indexer] Collection '${source}' created successfully`);
     } catch (err) {

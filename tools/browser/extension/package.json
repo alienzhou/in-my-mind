@@ -7,15 +7,26 @@
     "dev": "npm run build && npm run watch",
     "build": "node build.mjs",
     "watch": "nodemon --watch src -e ts --exec 'npm run build'",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint src",
+    "lint:fix": "eslint src --fix"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@types/chrome": "^0.0.268",
+    "@types/node": "^25.6.0",
     "esbuild": "^0.28.0",
-    "typescript": "^5.4.0"
+    "eslint": "^10.2.1",
+    "typescript": "^5.4.0",
+    "typescript-eslint": "^8.58.2",
+    "vitest": "^4.1.4"
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["esbuild"]
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
   },
   "packageManager": "pnpm@10.28.2+sha512.41872f037ad22f7348e3b1debbaf7e867cfd448f2726d9cf74c08f19507c31d2c8e7a11525b983febc2df640b5438dee6023ebb1f84ed43cc2d654d2bc326264"
 }
