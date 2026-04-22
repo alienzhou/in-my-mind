@@ -5,6 +5,7 @@
 ## 1. 核心理念与定位
 
 `in-my-mind` 是一个个人外置知识库项目，用于：
+
 - **采集**网络上收藏、点赞的各种内容（GitHub、Twitter、小红书、知乎、书签等）
 - 作为原始内容（Markdown）的**存储仓库**
 - 通过 **QMD (Query Markup Documents)** 提供高性能的本地全文/向量检索
@@ -81,12 +82,14 @@ in-my-mind/
 **端口**：3020（固定）
 
 **启动方式**：
+
 ```bash
 ./bin/imm gateway        # 生产模式
 cd gateway && pnpm dev   # 开发模式
 ```
 
 **核心流程**：
+
 ```text
 采集源 (插件/Collector/API)
        │
@@ -111,6 +114,7 @@ raw/{source}/{date}/{file}.md
 - **索引触发**: Gateway 写入后 debounce 60 秒批量触发 `qmd update && qmd embed`
 
 **Collection 初始化**：
+
 ```bash
 qmd --index in-my-mind collection add github      ./raw/github      --pattern '**/*.md'
 qmd --index in-my-mind collection add twitter     ./raw/twitter     --pattern '**/*.md'
@@ -123,12 +127,14 @@ qmd --index in-my-mind collection add others      ./raw/others      --pattern '*
 ### 3.3 去重机制 (Deduplication)
 
 为了防止重复采集，建立基于 SQLite 的本地去重机制：
+
 - **唯一标识**: 规范化后的内容 URL
 - **存储位置**: `data/dedup.sqlite`，该文件**提交至 Git**，以实现多设备间的去重状态共享
 - **管理位置**: Gateway（TypeScript）负责去重逻辑
 - **更新策略**: "忽略更新"原则，内容只采集一次
 
 **Schema 设计**:
+
 ```sql
 CREATE TABLE collected_items (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -144,6 +150,7 @@ CREATE INDEX idx_collection ON collected_items(collection);
 ### 3.4 URL 规范化 (Normalization)
 
 入库去重前的关键步骤，保证同一内容的不同链接形式能被准确识别：
+
 1. `scheme` 和 `netloc` 转换为小写
 2. 移除路径末尾的斜杠 (`/`)
 3. 移除常见的追踪参数 (`utm_*`, `ref`, `source`, `spm` 等)
@@ -241,17 +248,14 @@ Gateway: Readability 清洗 → Turndown 转 Markdown → 写入 → 索引
 *注：受 Garry Tan 的 GBrain 项目启发，以下特性作为远期规划，当前阶段不实现。*
 
 1. **Compiled Truth + Timeline 结构**:
-   - 现阶段：直接存储抓取的网页原文/README
-   - 未来：引入 LLM 预处理流程。Markdown 顶部存储 "Compiled Truth"（最佳理解摘要），底部存储 "Timeline"（追加抓取记录和后续遇到的相关事件），使知识具备"复利"属性。
-   
+  - 现阶段：直接存储抓取的网页原文/README
+  - 未来：引入 LLM 预处理流程。Markdown 顶部存储 "Compiled Truth"（最佳理解摘要），底部存储 "Timeline"（追加抓取记录和后续遇到的相关事件），使知识具备"复利"属性。
 2. **Fat Skills (Skillpack) 理念**:
-   - 在 `skills/in-my-mind-search/` 中编写极其详尽的 Agent 操作手册（Playbook），指导跨仓库的 Agent 在遇到不同场景时，如何最优地搜索该库、何时写入更新。
-
+  - 在 `skills/in-my-mind-search/` 中编写极其详尽的 Agent 操作手册（Playbook），指导跨仓库的 Agent 在遇到不同场景时，如何最优地搜索该库、何时写入更新。
 3. **Recipes 模式接入**:
-   - 将各个平台数据源的 Token 获取、配置测试等流程写成结构化的 Markdown 指南，让 Agent 能够看懂并自动修复采集环境。
-
+  - 将各个平台数据源的 Token 获取、配置测试等流程写成结构化的 Markdown 指南，让 Agent 能够看懂并自动修复采集环境。
 4. **夜间梦境循环 (Dream Cycle)**:
-   - 设立定时任务，在夜间自动清理孤立的 Markdown 页面、修复死链、运行大模型融合知识并执行 QMD 重新 Embed，保持知识库的"鲜活"。
+  - 设立定时任务，在夜间自动清理孤立的 Markdown 页面、修复死链、运行大模型融合知识并执行 QMD 重新 Embed，保持知识库的"鲜活"。
 
 ## 6. 配置系统
 
@@ -271,11 +275,13 @@ default.json/default.yaml  ← 默认配置，作为兜底
 
 配置文件位于 `gateway/src/config/`：
 
-| 文件 | 用途 | Git 状态 |
-|------|------|----------|
-| `default.json` | 默认配置 | ✅ 提交 |
-| `config.json` | 项目级覆盖 | ✅ 可提交 |
-| `.local.json` | 本地开发配置 | ❌ gitignore |
+
+| 文件             | 用途     | Git 状态      |
+| -------------- | ------ | ----------- |
+| `default.json` | 默认配置   | ✅ 提交        |
+| `config.json`  | 项目级覆盖  | ✅ 可提交       |
+| `.local.json`  | 本地开发配置 | ❌ gitignore |
+
 
 当前支持的配置项参见 [docs/CONFIG.md](./docs/CONFIG.md)。
 
@@ -283,11 +289,13 @@ default.json/default.yaml  ← 默认配置，作为兜底
 
 配置文件位于 `collector/config/`：
 
-| 文件 | 用途 | Git 状态 |
-|------|------|----------|
-| `default.yaml` | 默认配置 | ✅ 提交 |
-| `config.yaml` | 项目级覆盖 | ✅ 可提交 |
-| `.local.yaml` | 本地开发配置 | ❌ gitignore |
+
+| 文件             | 用途     | Git 状态      |
+| -------------- | ------ | ----------- |
+| `default.yaml` | 默认配置   | ✅ 提交        |
+| `config.yaml`  | 项目级覆盖  | ✅ 可提交       |
+| `.local.yaml`  | 本地开发配置 | ❌ gitignore |
+
 
 ## 7. 增量采集机制
 
@@ -314,9 +322,11 @@ Collector 获取 Stars（按时间排序）
 
 ### 7.3 关键参数
 
-| 参数 | 默认值 | 说明 |
-|------|--------|------|
-| `incrementalThreshold` | 5 | 连续 skipped 达到该值时停止 |
+
+| 参数                     | 默认值 | 说明                 |
+| ---------------------- | --- | ------------------ |
+| `incrementalThreshold` | 5   | 连续 skipped 达到该值时停止 |
+
 
 ### 7.4 优势
 
@@ -333,6 +343,7 @@ Collector 获取 Stars（按时间排序）
 - **日志级别**: 通过配置文件 `logging.level` 控制
 
 **关键日志点**：
+
 - `[COLLECT]` 采集请求入口
 - `[DEDUP]` 去重检查结果
 - `[STORAGE]` 文件写入
@@ -345,6 +356,7 @@ Collector 获取 Stars（按时间排序）
 - **日志级别**: 通过配置文件 `logging.level` 控制
 
 **关键日志点**：
+
 - `[SYNC]` 同步开始/结束
 - `[FETCH]` API 请求
 - `[GATEWAY]` Gateway 调用结果
@@ -366,3 +378,4 @@ logs/
 - [docs/CONFIG.md](./docs/CONFIG.md) - 配置项详细说明
 - [specs/gateway/](./specs/gateway/) - Gateway 模块技术规格
 - `.discuss/` - 架构讨论记录
+
